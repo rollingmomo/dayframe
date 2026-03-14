@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Star, Clock, ListTodo, Calendar, X, MoreVertical, Settings, User, Check, ChevronLeft, ChevronRight, LogOut, RotateCcw } from 'lucide-react';
+import { Plus, Star, Clock, ListTodo, Calendar, X, MoreVertical, Settings, User, Check, ChevronLeft, ChevronRight, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -795,13 +795,6 @@ export default function App() {
                 className="absolute right-0 top-full mt-2 z-50 bg-white border border-zinc-200 rounded-xl shadow-xl py-1.5 min-w-[140px]"
               >
                 <p className="px-3 py-1.5 text-[10px] text-zinc-400 truncate max-w-[140px]">{user?.email}</p>
-                <button
-                  onClick={resetPlannerData}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  데이터 초기화
-                </button>
                 <button
                   onClick={() => { signOut(); setProfileMenuOpen(false); }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
