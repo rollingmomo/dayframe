@@ -140,14 +140,15 @@ export default function App() {
   };
 
   const dataLoadedRef = React.useRef(false);
+  const lastSavedRef = React.useRef<string>('');
 
-  const resetPlannerData = async () => {
-    if (!user || !confirm('모든 태스크와 스케줄이 삭제됩니다. 계속할까요?')) return;
-    setTasksByDate({});
-    setSchedules({});
-    setProfileMenuOpen(false);
-    await savePlannerData(user.id, {}, {}, categories);
-  };
+  const saveNow = React.useCallback(async () => {
+    if (!user || !dataLoadedRef.current) return;
+    const snapshot = JSON.stringify({ tasksByDate, schedules, categories });
+    if (snapshot === lastSavedRef.current) return;
+    const ok = await savePlannerData(user.id, tasksByDate, schedules, categories);
+    if (ok) lastSavedRef.current = snapshot;
+  }, [user, tasksByDate, schedules, categories]);
 
   // Load from Supabase when logged in
   useEffect(() => {
@@ -166,16 +167,37 @@ export default function App() {
     });
   }, [user?.id, authLoading]);
 
-  // Save to Supabase when logged in (debounced) — only after initial load
+  // Save to Supabase when data changes (debounced)
   const saveTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
     if (authLoading || !user || !dataLoadedRef.current) return;
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
     saveTimeoutRef.current = setTimeout(() => {
-      savePlannerData(user.id, tasksByDate, schedules, categories);
+      saveNow();
     }, 500);
     return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [user?.id, tasksByDate, schedules, categories, authLoading]);
+  }, [user?.id, tasksByDate, schedules, categories, authLoading, saveNow]);
+
+  // Save before page close
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (user && dataLoadedRef.current) {
+        const body = JSON.stringify({
+          user_id: user.id,
+          tasks: tasksByDate,
+          schedule: schedules,
+          categories,
+          updated_at: new Date().toISOString(),
+        });
+        navigator.sendBeacon?.(
+          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/planner_data?on_conflict=user_id`,
+          new Blob([body], { type: 'application/json' })
+        );
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [user, tasksByDate, schedules, categories]);
 
   // Close menus on outside click
   useEffect(() => {
@@ -799,7 +821,11 @@ export default function App() {
               >
                 <p className="px-3 py-1.5 text-[10px] text-zinc-400 truncate max-w-[140px]">{user?.email}</p>
                 <button
-                  onClick={() => { signOut(); setProfileMenuOpen(false); }}
+                  onClick={async () => {
+                    await saveNow();
+                    signOut();
+                    setProfileMenuOpen(false);
+                  }}
                   className="w-full flex items-center gap-2 px-3 py-2 text-xs font-medium text-zinc-600 hover:bg-zinc-50 transition-colors"
                 >
                   <LogOut className="w-3.5 h-3.5" />
