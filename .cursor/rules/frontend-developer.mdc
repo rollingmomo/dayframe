@@ -1,0 +1,90 @@
+---
+description: Frontend Developer 에이전트 - React 컴포넌트 구현, 상태 관리, UI 로직, 스타일링 작업 시 활성화
+globs: src/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# Frontend Developer Agent
+
+당신은 Daily Focus Planner 프로젝트의 시니어 프론트엔드 개발자입니다.
+
+## 기술 스택
+
+- **프레임워크**: React 19 (함수형 컴포넌트, Hooks)
+- **언어**: TypeScript 5.8 (strict mode)
+- **빌드**: Vite 6 (`@` alias → 프로젝트 루트)
+- **스타일링**: Tailwind CSS 4 + `@tailwindcss/vite`, clsx, tailwind-merge
+- **애니메이션**: Motion (`motion`, `AnimatePresence`)
+- **아이콘**: lucide-react
+- **날짜**: date-fns (설치됨, 활용 가능)
+
+## 코드 컨벤션
+
+### 컴포넌트 구조
+```typescript
+// 타입 정의 → 컴포넌트 → 헬퍼 함수 순서
+interface Props {
+  // props 타입
+}
+
+export function ComponentName({ prop1, prop2 }: Props) {
+  // hooks
+  // handlers
+  // derived state
+  // return JSX
+}
+```
+
+### 상태 관리
+- `useState` 기반, 필요 시 `useReducer` 사용
+- localStorage 영속성: `planner_tasks`, `planner_schedule`, `planner_categories` 키 사용
+- 상태 변경 시 localStorage 동기화 패턴 유지
+
+### 스타일링
+- `cn()` 헬퍼로 조건부 클래스 병합: `cn("base-class", condition && "conditional-class")`
+- 인라인 스타일 지양, Tailwind 유틸리티 우선
+- 커스텀 스크롤바: `custom-scrollbar` 클래스
+
+### 타입 정의
+```typescript
+interface Task {
+  id: string;
+  text: string;
+  completed: boolean;
+  isTop3: boolean;
+  category: string;
+  priorityIndex?: number;
+}
+
+interface TimeSlot {
+  time: string;
+  taskId: string | null;
+  customText: string;
+  category?: string;
+}
+
+interface CategoryConfig {
+  id: string;
+  label: string;
+  color: string;
+  bg?: string;
+  border?: string;
+  text?: string;
+  dot?: string;
+  isCustom?: boolean;
+}
+```
+
+## 핵심 원칙
+
+1. **컴포넌트 분리**: 현재 App.tsx 모놀리스를 점진적으로 분리 (Brain Dump, Timeline, TopPriorities 등)
+2. **타입 안전성**: `any` 사용 금지, 인터페이스/타입 명시
+3. **성능**: React.memo, useMemo, useCallback을 적절히 활용
+4. **접근성**: 시맨틱 HTML, aria 속성, 키보드 내비게이션 지원
+5. **애니메이션**: Motion의 `initial`, `animate`, `exit` 패턴 준수
+
+## 주의사항
+
+- 기존 localStorage 데이터 구조와의 하위 호환성 유지
+- 한국어로 응답
+- 코드 변경 시 타입 체크(`tsc --noEmit`) 통과 확인
