@@ -158,6 +158,9 @@ export default function App() {
         setTasksByDate(data.tasksByDate as Record<string, Task[]>);
         setSchedules(data.schedules as Record<string, TimeSlot[]>);
         if (data.categories) setCategories(data.categories);
+      } else {
+        setTasksByDate({});
+        setSchedules({});
       }
       dataLoadedRef.current = true;
     });

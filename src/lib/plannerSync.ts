@@ -13,6 +13,7 @@ function toDateKeyFromDate(d: Date): string {
 }
 
 export async function loadPlannerData(userId: string) {
+  console.log('[Dayframe] Loading data for user:', userId);
   const { data, error } = await supabase
     .from('planner_data')
     .select('tasks, schedule, categories, updated_at')
@@ -20,11 +21,14 @@ export async function loadPlannerData(userId: string) {
     .single();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('Failed to load planner:', error);
+    console.error('[Dayframe] Failed to load planner:', error);
     return null;
   }
 
-  if (!data) return null;
+  if (!data) {
+    console.log('[Dayframe] No existing data found, starting fresh');
+    return { tasksByDate: {} as TasksByDate, schedules: {} as ScheduleByDate, categories: null };
+  }
 
   // Legacy migration: use updated_at (local date) so Saturday's data stays on Saturday
   const legacyDateKey = data.updated_at
@@ -51,6 +55,7 @@ export async function loadPlannerData(userId: string) {
     }
   }
 
+  console.log('[Dayframe] Loaded data:', { taskDates: Object.keys(tasksByDate), scheduleDates: Object.keys(schedules) });
   return {
     tasksByDate,
     schedules,
@@ -76,8 +81,9 @@ export async function savePlannerData(
   );
 
   if (error) {
-    console.error('Failed to save planner:', error);
+    console.error('[Dayframe] Failed to save planner:', error);
     return false;
   }
+  console.log('[Dayframe] Saved successfully:', { taskDates: Object.keys(tasksByDate), scheduleDates: Object.keys(schedules) });
   return true;
 }
