@@ -93,6 +93,7 @@ export default function App() {
   const [selectedDate, setSelectedDate] = useState(today);
   const [tasksByDate, setTasksByDate] = useState<Record<string, Task[]>>({});
   const [categories, setCategories] = useState<CategoryConfig[]>(DEFAULT_CATEGORIES);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [newTaskText, setNewTaskText] = useState('');
   const [newTaskCategory, setNewTaskCategory] = useState<string>('personal');
   const [schedules, setSchedules] = useState<Record<string, TimeSlot[]>>({});
@@ -140,20 +141,12 @@ export default function App() {
   };
 
   const dataLoadedRef = React.useRef(false);
-  const lastSavedRef = React.useRef<string>('');
-
-  const saveNow = React.useCallback(async () => {
-    if (!user || !dataLoadedRef.current) return;
-    const snapshot = JSON.stringify({ tasksByDate, schedules, categories });
-    if (snapshot === lastSavedRef.current) return;
-    const ok = await savePlannerData(user.id, tasksByDate, schedules, categories);
-    if (ok) lastSavedRef.current = snapshot;
-  }, [user, tasksByDate, schedules, categories]);
 
   // Load from Supabase when logged in
   useEffect(() => {
     if (authLoading || !user) return;
     dataLoadedRef.current = false;
+    setSaveError(null);
     loadPlannerData(user.id).then((data) => {
       if (data) {
         setTasksByDate(data.tasksByDate as Record<string, Task[]>);
@@ -164,40 +157,25 @@ export default function App() {
         setSchedules({});
       }
       dataLoadedRef.current = true;
+    }).catch((err) => {
+      console.error('[Dayframe] Load error:', err);
+      setSaveError('데이터 로드 실패: ' + (err?.message || String(err)));
+      dataLoadedRef.current = true;
     });
   }, [user?.id, authLoading]);
 
-  // Save to Supabase when data changes (debounced)
-  const saveTimeoutRef = React.useRef<ReturnType<typeof setTimeout>>();
+  // Save immediately when data changes
+  const prevDataRef = React.useRef<string>('');
   useEffect(() => {
     if (authLoading || !user || !dataLoadedRef.current) return;
-    if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-    saveTimeoutRef.current = setTimeout(() => {
-      saveNow();
-    }, 500);
-    return () => { if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current); };
-  }, [user?.id, tasksByDate, schedules, categories, authLoading, saveNow]);
-
-  // Save before page close
-  useEffect(() => {
-    const handleBeforeUnload = () => {
-      if (user && dataLoadedRef.current) {
-        const body = JSON.stringify({
-          user_id: user.id,
-          tasks: tasksByDate,
-          schedule: schedules,
-          categories,
-          updated_at: new Date().toISOString(),
-        });
-        navigator.sendBeacon?.(
-          `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/planner_data?on_conflict=user_id`,
-          new Blob([body], { type: 'application/json' })
-        );
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [user, tasksByDate, schedules, categories]);
+    const snapshot = JSON.stringify({ t: tasksByDate, s: schedules, c: categories });
+    if (snapshot === prevDataRef.current) return;
+    prevDataRef.current = snapshot;
+    savePlannerData(user.id, tasksByDate, schedules, categories).then((ok) => {
+      if (!ok) setSaveError('저장 실패 — Supabase 테이블이 생성되었는지 확인하세요');
+      else setSaveError(null);
+    });
+  }, [user?.id, tasksByDate, schedules, categories, authLoading]);
 
   // Close menus on outside click
   useEffect(() => {
@@ -708,6 +686,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-zinc-50">
+      {saveError && (
+        <div className="fixed top-0 left-0 right-0 z-[200] bg-red-500 text-white text-xs font-bold text-center py-2 px-4">
+          ⚠ {saveError}
+        </div>
+      )}
       <div className="px-4 pt-3 pb-4 lg:px-8 lg:pt-4 lg:pb-8">
 
       {/* Logo Bar */}
@@ -822,7 +805,9 @@ export default function App() {
                 <p className="px-3 py-1.5 text-[10px] text-zinc-400 truncate max-w-[140px]">{user?.email}</p>
                 <button
                   onClick={async () => {
-                    await saveNow();
+                    if (user && dataLoadedRef.current) {
+                      await savePlannerData(user.id, tasksByDate, schedules, categories);
+                    }
                     signOut();
                     setProfileMenuOpen(false);
                   }}
