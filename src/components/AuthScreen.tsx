@@ -98,9 +98,7 @@ export function AuthScreen() {
             />
           </div>
           <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">
-              Password <span className="font-normal normal-case text-zinc-400">(6자 이상)</span>
-            </label>
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-1.5">Password</label>
             <input
               type="password"
               value={password}

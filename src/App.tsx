@@ -11,6 +11,7 @@ import { twMerge } from 'tailwind-merge';
 import { useAuth } from './contexts/AuthContext';
 import { AuthScreen } from './components/AuthScreen';
 import { loadPlannerData, savePlannerData } from './lib/plannerSync';
+import logoImg from './assets/logo.svg';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -775,7 +776,7 @@ export default function App() {
           </div>
         </div>
         <div className="flex-shrink-0">
-          <img src="/src/assets/logo.png" alt="Dayframe" className="h-12" />
+          <img src={logoImg} alt="Dayframe" className="h-12" />
         </div>
         <div className="flex-1 flex justify-end relative">
           <button
