@@ -1159,6 +1159,22 @@ export default function App() {
                                   exit={{ opacity: 0, scale: 0.95, y: 5 }}
                                   className="absolute right-0 top-full mt-1 z-50 bg-white border border-zinc-200 rounded-xl shadow-xl p-1.5 min-w-[120px]"
                                 >
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setEditingTaskId(task.id);
+                                      setEditText(task.text);
+                                      setActiveCategoryMenuId(null);
+                                    }}
+                                    className="w-full text-left px-2 py-1.5 rounded-lg text-[10px] font-medium text-zinc-600 hover:bg-zinc-50 transition-all flex items-center gap-2"
+                                  >
+                                    <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Edit
+                                  </button>
+                                  <div className="border-t border-zinc-100 my-1" />
                                   <p className="text-[8px] font-bold text-zinc-400 uppercase px-2 py-1 mb-1">Category</p>
                                   {categories.map(c => (
                                     <button
