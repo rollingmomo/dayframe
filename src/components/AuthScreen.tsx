@@ -163,11 +163,11 @@ function HeroPanel() {
         transition={{ duration: 0.8 }}
         src="/login-hero.png"
         alt=""
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover object-right"
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-      <div className="relative z-10 flex flex-col justify-end w-full p-12 lg:p-16">
-        <h2 className="text-3xl lg:text-4xl font-extrabold text-white tracking-tight leading-tight mb-4">
+      <div className="absolute inset-0 bg-black/30" />
+      <div className="relative z-10 flex flex-col items-center justify-start w-full p-12 lg:p-16 pt-24 lg:pt-32 text-center">
+        <h2 className="text-3xl lg:text-4xl font-normal text-white tracking-tight leading-tight mb-4">
           Frame your day.<br/>
           Focus on what matters.
         </h2>

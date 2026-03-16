@@ -141,6 +141,25 @@ export default function App() {
   };
 
   const dataLoadedRef = React.useRef(false);
+  const timelineRef = React.useRef<HTMLDivElement>(null);
+  const brainDumpRef = React.useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const syncHeight = () => {
+      if (timelineRef.current && brainDumpRef.current) {
+        const h = timelineRef.current.offsetHeight;
+        brainDumpRef.current.style.height = h + 'px';
+      }
+    };
+    syncHeight();
+    window.addEventListener('resize', syncHeight);
+    const observer = new ResizeObserver(syncHeight);
+    if (timelineRef.current) observer.observe(timelineRef.current);
+    return () => {
+      window.removeEventListener('resize', syncHeight);
+      observer.disconnect();
+    };
+  });
 
   // Load from Supabase when logged in
   useEffect(() => {
@@ -939,11 +958,11 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+      <main className="max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* Left Column: Brain Dump (Long) */}
-        <section className="lg:col-span-3">
-          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm flex flex-col h-full">
+        <section className="lg:col-span-3 lg:sticky lg:top-8 lg:self-start">
+          <div ref={brainDumpRef} className="bg-white rounded-2xl border border-zinc-200 shadow-sm flex flex-col">
             <div className="p-4 border-b border-zinc-100 bg-zinc-50/50">
               <div className="flex items-center gap-2 mb-4">
                 <ListTodo className="w-4 h-4 text-zinc-600" />
@@ -1216,7 +1235,7 @@ export default function App() {
 
         {/* Right Column: 2-Column Timetable */}
         <section className="lg:col-span-9">
-          <div className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-visible h-full">
+          <div ref={timelineRef} className="bg-white rounded-2xl border border-zinc-200 shadow-sm overflow-visible">
             <div className="p-4 border-b border-zinc-100 bg-zinc-50/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4 text-zinc-600" />
@@ -1331,7 +1350,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      <footer className="max-w-[1600px] mx-auto mt-8 pb-8 text-center text-zinc-400 text-[10px] uppercase tracking-widest">
+      <footer className="w-full mt-8 pb-8 text-center text-zinc-400 text-[10px] uppercase tracking-widest">
         © {new Date().getFullYear()} Dayframe • Stay Focused, Stay Productive.
       </footer>
       </div>
